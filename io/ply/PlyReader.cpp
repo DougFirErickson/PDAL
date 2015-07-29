@@ -38,9 +38,7 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <pdal/pdal_error.hpp>
 #include <pdal/PointView.hpp>
-
 
 namespace pdal
 {
@@ -90,6 +88,7 @@ int readPlyCallback(p_ply_argument argument)
     long numToRead;
     p_ply_property property;
     const char * propertyName;
+
     if (!ply_get_argument_element(argument, &element, &index))
     {
         std::stringstream ss;
@@ -229,9 +228,14 @@ point_count_t PlyReader::read(PointViewPtr view, point_count_t num)
     context.view = view;
     context.dimensionMap = m_vertexDimensions;
 
+    // It's possible that point_count_t holds a value that's larger than the
+    // long that is the maximum rply (don't know about ply) point count.
+    long cnt;
+    cnt = Utils::inRange<long>(num) ? num : (std::numeric_limits<long>::max)();
     for (auto it : m_vertexDimensions)
     {
-        ply_set_read_cb(m_ply, "vertex", it.first.c_str(), readPlyCallback, &context, num);
+        ply_set_read_cb(m_ply, "vertex", it.first.c_str(), readPlyCallback,
+            &context, cnt);
     }
     if (!ply_read(m_ply))
     {
@@ -252,6 +256,5 @@ void PlyReader::done(PointTableRef table)
         throw pdal_error(ss.str());
     }
 }
-
 
 }

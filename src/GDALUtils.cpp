@@ -33,7 +33,7 @@
 ****************************************************************************/
 
 #include <pdal/GDALUtils.hpp>
-#include <pdal/Utils.hpp>
+#include <pdal/util/Utils.hpp>
 
 #include <functional>
 #include <map>
@@ -73,10 +73,7 @@ void ErrorHandler::log(::CPLErr code, int num, char const* msg)
     std::ostringstream oss;
 
     if (code == CE_Failure || code == CE_Fatal)
-    {
-        oss <<"GDAL Failure number=" << num << ": " << msg;
-        throw pdal::gdal_error(oss.str());
-    }
+        error(code, num, msg);
     else if (code == CE_Debug)
     {
         oss << "GDAL debug: " << msg;
@@ -91,8 +88,8 @@ void ErrorHandler::error(::CPLErr code, int num, char const* msg)
     std::ostringstream oss;
     if (code == CE_Failure || code == CE_Fatal)
     {
-        oss <<"GDAL Failure number=" << num << ": " << msg;
-        throw pdal::gdal_error(oss.str());
+        oss <<"GDAL Failure number =" << num << ": " << msg;
+        throw pdal_error(oss.str());
     }
 }
 

@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) 2014-2015, RadiantBlue Technologies, Inc.
+* Copyright (c) 2015, Brad Chambers (brad.chambers@gmail.com)
 *
 * All rights reserved.
 *
@@ -34,53 +34,33 @@
 
 #pragma once
 
-#include <pdal/pdal_export.hpp>
-#include <pdal/Writer.hpp>
+#include <pdal/Kernel.hpp>
 
-#include "RialtoCommon.hpp"
-
-#include <cstdint>
 #include <string>
-
-extern "C" int32_t RialtoWriter_ExitFunc();
-extern "C" PF_ExitFunc RialtoWriter_InitPlugin();
 
 namespace pdal
 {
 
-class Options;
-class Tile;
-
-class PDAL_DLL RialtoWriter : public Writer
+class HeightAboveGroundKernel : public Kernel
 {
 public:
-    RialtoWriter()
-        {}
+    SET_KERNEL_NAME("height", "Height above ground")
+    SET_KERNEL_LINK("http://pdal.io/kernels/kernels.height.html")
 
-    static void * create();
-    static int32_t destroy(void *);
-    std::string getName() const;
+    HeightAboveGroundKernel() : Kernel()
+    {}
 
-    Options getDefaultOptions();
+    int execute();
 
 private:
-    virtual void processOptions(const Options& options);
-    virtual void ready(PointTableRef table);
-    virtual void write(const PointViewPtr view);
-    virtual void done(PointTableRef table);
+    void validateSwitches();
+    void addSwitches();
 
-    int32_t m_bytesPerPoint;
-    int32_t m_maxLevel;
-    int32_t m_numTilesX;
-    int32_t m_numTilesY;
-    bool m_overwrite;
-    Rectangle m_rectangle;
-    Tile** m_roots;
-    BasePointTable *m_table;
+    bool m_use_classification;
 
-    RialtoWriter& operator=(const RialtoWriter&); // not implemented
-    RialtoWriter(const RialtoWriter&); // not implemented
+    std::string m_input_file;
+    std::string m_ground_file;
+    std::string m_output_file;
 };
 
 } // namespace pdal
-

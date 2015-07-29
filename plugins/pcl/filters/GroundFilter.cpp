@@ -87,7 +87,8 @@ PointViewSet GroundFilter::run(PointViewPtr input)
     // convert PointView to PointXYZ
     typedef pcl::PointCloud<pcl::PointXYZ> Cloud;
     Cloud::Ptr cloud(new Cloud);
-    BOX3D const& bounds = input->calculateBounds();
+    BOX3D bounds;
+    input->calculateBounds(bounds);
     pclsupport::PDALtoPCD(input, *cloud, bounds);
 
     // PCL should provide console output at similar verbosity level as PDAL
@@ -128,7 +129,6 @@ PointViewSet GroundFilter::run(PointViewPtr input)
         pmf.setCellSize(m_cellSize);
 
         // run the PMF filter, grabbing indices of ground returns
-        pcl::PointIndicesPtr idx(new pcl::PointIndices);
         pmf.extract(idx->indices);
     } else
     {

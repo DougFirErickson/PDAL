@@ -59,6 +59,7 @@ namespace pdal
 
 Kernel::Kernel()
     : m_usestdin(false)
+    , m_log("pdal", "stderr")
     , m_isDebug(false)
     , m_verboseLevel(0)
     , m_showHelp(false)
@@ -67,17 +68,15 @@ Kernel::Kernel()
     , m_hardCoreDebug(false)
     , m_reportDebug(false)
     , m_visualize(false)
-    , m_label("")
-{
-}
+{}
 
 
 std::ostream& operator<<(std::ostream& ostr, const Kernel& kernel)
 {
     ostr << "  Name: " << kernel.getName() << std::endl;
-
     return ostr;
 }
+
 
 int Kernel::do_switches()
 {
@@ -94,13 +93,12 @@ int Kernel::do_switches()
     }
     catch (std::exception const& e)
     {
-        const std::string s("Caught exception handling switches: ");
-        utils::printError(s + e.what());
+        Utils::printError(e.what());
         return 1;
     }
     catch (...)
     {
-        utils::printError("Caught unknown exception handling switches");
+        Utils::printError("Caught unknown exception handling switches");
         return 1;
     }
     return 0;
@@ -116,12 +114,12 @@ int Kernel::do_startup()
     catch (std::exception const& e)
     {
         const std::string s("Caught exception in initialization: ");
-        utils::printError(s + e.what());
+        Utils::printError(s + e.what());
         return 1;
     }
     catch (...)
     {
-        utils::printError("Caught unknown exception in initialization");
+        Utils::printError("Caught unknown exception in initialization");
         return 1;
     }
 
@@ -152,17 +150,17 @@ int Kernel::do_execution()
     }
     catch (pdal::pdal_error const& e)
     {
-        utils::printError(e.what());
+        Utils::printError(e.what());
         return 1;
     }
     catch (std::exception const& e)
     {
-        utils::printError(e.what());
+        Utils::printError(e.what());
         return 1;
     }
     catch (...)
     {
-        utils::printError("Caught unexpected exception.");
+        Utils::printError("Caught unexpected exception.");
         return 1;
     }
 
@@ -179,12 +177,12 @@ int Kernel::do_shutdown()
     catch (std::exception const& e)
     {
         const std::string s("Caught exception during shutdown: ");
-        utils::printError(s + e.what());
+        Utils::printError(s + e.what());
         return 1;
     }
     catch (...)
     {
-        utils::printError("Caught unknown exception during shutdown.");
+        Utils::printError("Caught unknown exception during shutdown.");
         return 1;
     }
 
@@ -220,6 +218,7 @@ int Kernel::run(int argc, const char* argv[], const std::string& appName)
     return shutdown_status;
 }
 
+
 void Kernel::collectExtraOptions()
 {
     for (const auto& o : m_extra_options)
@@ -240,10 +239,11 @@ void Kernel::collectExtraOptions()
             option_split.push_back(boost::lexical_cast<std::string>(ti));
         if (!(option_split.size() == 2))
         {
-            std::ostringstream oss;
-            oss << "option '" << o << "' did not split correctly. Is it "
-                "in the form --readers.las.option=foo?";
-            throw app_usage_error(oss.str());
+//             std::ostringstream oss;
+//             oss << "option '" << o << "' did not split correctly. Is it "
+//                 "in the form --readers.las.option=foo?";
+//             throw app_usage_error(oss.str());
+            continue;
         }
 
         std::string option_value(option_split[1]);
@@ -278,6 +278,15 @@ void Kernel::collectExtraOptions()
 }
 
 
+bool Kernel::argumentSpecified(const std::string& name)
+{
+    auto ai = m_variablesMap.find(name);
+    if (ai == m_variablesMap.end())
+        return false;
+    return !(ai->second.defaulted());
+}
+
+
 int Kernel::innerRun()
 {
     // handle the well-known options
@@ -306,7 +315,7 @@ int Kernel::innerRun()
     }
     catch (app_usage_error e)
     {
-        utils::printError(std::string("Usage error: ") + e.what());
+        Utils::printError(std::string("Usage error: ") + e.what());
         outputHelp();
         return 1;
     }
@@ -423,7 +432,7 @@ void Kernel::setCommonOptions(Options &options)
 
     boost::char_separator<char> sep(",| ");
 
-    if (m_variablesMap.count("scale"))
+    if (argumentExists("scale"))
     {
         std::vector<double> scales;
         tokenizer scale_tokens(m_scales, sep);
@@ -449,7 +458,7 @@ void Kernel::setCommonOptions(Options &options)
         }
     }
 
-    if (m_variablesMap.count("offset"))
+    if (argumentExists("offset"))
     {
         std::vector<double> offsets;
         tokenizer offset_tokens(m_offsets, sep);
@@ -493,21 +502,15 @@ void Kernel::outputHelp()
         std::cout << std::endl;
     }
 
-    std::string headline(90, '-');
-
     std::cout <<"\nFor more information, see the full documentation for "
-        "PDAL at http://pdal.io/\n" <<
-        headline << std::endl << std::endl;
+        "PDAL at http://pdal.io/\n" << std::endl << std::endl;
 }
 
 
 void Kernel::outputVersion()
 {
-    std::string headline(90, '-');
-    std::cout << headline << std::endl;
     std::cout << "pdal " << m_appName << " (" <<
         GetFullVersionString() << ")\n";
-    std::cout << headline << std::endl;
     std::cout << std::endl;
 }
 

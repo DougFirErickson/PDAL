@@ -28,7 +28,14 @@ Options
 -------
 
 filename
-  BPF file to read [Required] 
+  BPF file to read.  The writer will accept a filename containing
+  a single placeholder character ('#').  If input to the writer consists
+  of multiple PointViews, each will be written to a separate file, where
+  the placeholder will be replaced with an incrementing integer.  If no
+  placeholder is found, all PointViews provided to the writer are
+  aggregated into a single file for output.  Multiple PointViews are usually
+  the result of using :ref:`filters.splitter` or :ref:`filters.chipper`.
+  [Required]
 
 compression
   This option can be set to true to cause the file to be written with Zlib
@@ -45,6 +52,15 @@ format
     stored contiguously, but bytes are arranged such that the first bytes for
     all points are stored contiguously, followed by the second bytes of all
     points, etc.  See the BPF specification for further information.
+
+bundledfile
+  Path of file to be written as a bundled file (see specification).  The path
+  part of the filespec is removed and the filename is stored as part of the
+  data.  This option can be specified as many times as desired.
+
+header_data
+  Base64-encoded data that will be decoded and written following the
+  standard BPF header.
 
 coord_id
   The coordinate ID (UTM zone) of the data.  NOTE: Only the UTM coordinate

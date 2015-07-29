@@ -35,7 +35,7 @@
 #include <pdal/KernelFactory.hpp>
 #include <pdal/Kernel.hpp>
 #include <pdal/PluginManager.hpp>
-#include <pdal/Utils.hpp>
+#include <pdal/util/Utils.hpp>
 
 #include <delta/DeltaKernel.hpp>
 #include <diff/DiffKernel.hpp>
@@ -45,6 +45,7 @@
 #include <random/RandomKernel.hpp>
 #include <sort/SortKernel.hpp>
 #include <split/SplitKernel.hpp>
+#include <tindex/TIndexKernel.hpp>
 #include <translate/TranslateKernel.hpp>
 
 #include <boost/filesystem.hpp>
@@ -71,6 +72,7 @@ KernelFactory::KernelFactory(bool no_plugins)
     PluginManager::initializePlugin(RandomKernel_InitPlugin);
     PluginManager::initializePlugin(SortKernel_InitPlugin);
     PluginManager::initializePlugin(SplitKernel_InitPlugin);
+    PluginManager::initializePlugin(TIndexKernel_InitPlugin);
     PluginManager::initializePlugin(TranslateKernel_InitPlugin);
 }
 
